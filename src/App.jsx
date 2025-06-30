@@ -7,6 +7,16 @@ import HostelDetail from "./pages/HostelDetail";
 import Navbar from "./components/Navbar";
 import PostHostel from "./pages/PostHostel";
 import PremiumListing from './pages/PremiumListing';
+import ExplorePremiumHostels from "./pages/ExplorePremiumHostels";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { useState } from "react";
+import FadeInSection from "./components/FadeInSection"; // Ensure this component exists
+import { Link } from "react-router-dom";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { toast } from "react-toastify";
+import Footer from "./components/Footer";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "keen-slider/keen-slider.min.css";
@@ -35,6 +45,9 @@ export default function App() {
         <Route path="/about" element={<About />} />   
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<div>404 Not Found</div>} />
+        <Route path="/explore-premium-hostels" element={<ExplorePremiumHostels />} />
+        <Route path="/premium-hostels" element={<ExplorePremiumHostels />} />
+
         
       </Routes>
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} closeOnClick pauseOnHover draggable />

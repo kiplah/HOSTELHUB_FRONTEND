@@ -10,8 +10,10 @@ export default function Navbar() {
   const isAuthenticated = !!localStorage.getItem("access_token");
 
   const handleSearch = () => {
-    if (searchTerm.trim() !== "") {
-      navigate(`/hostels?search=${encodeURIComponent(searchTerm.trim())}`);
+    const trimmed = searchTerm.trim();
+    if (trimmed !== "") {
+      navigate("/premium-hostels", { state: { search: trimmed } });
+      setSearchTerm(""); // optional reset
     }
   };
 
@@ -26,7 +28,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-6">
             {[
               { label: "Home", to: "/" },
-              { label: "Explore", to: "/hostels" },
+              { label: "Explore", to: "/premium-hostels" },
               { label: "About", to: "/about" },
               {
                 label: "Post Hostel",
@@ -136,7 +138,7 @@ export default function Navbar() {
               <Link to="/" className="flex items-center gap-2 hover:bg-blue-900 px-3 py-2 rounded">
                 <Home size={16} /> Home
               </Link>
-              <Link to="/hostels" className="flex items-center gap-2 hover:bg-blue-900 px-3 py-2 rounded">
+              <Link to="/explore-premium" className="flex items-center gap-2 hover:bg-blue-900 px-3 py-2 rounded">
                 <Search size={16} /> Explore
               </Link>
               <Link to="/about" className="flex items-center gap-2 hover:bg-blue-900 px-3 py-2 rounded">

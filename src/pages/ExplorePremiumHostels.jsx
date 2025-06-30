@@ -1,26 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import API from "../services/api";
 import Footer from "../components/Footer";
-import FadeInSection from "../components/FadeInSection"; // ensure this exists
-import { useLocation } from "react-router-dom";
-import { toast } from "react-toastify"; // for notifications
+import FadeInSection from "../components/FadeInSection"; // Ensure it exists
 
 const LOCATIONS = [
-  "All",
-  "Nairobi West",
-  "Kilimani",
-  "Ngara",
-  "Kasarani",
-  "South B",
-  "South C",
-  "Parklands",
-  "Thika Road",
-  "Rongai",
-  "Westlands",
-  "Kenyatta Uni Area",
-  "JKUAT Area",
-  "Moi University Area",
+  "All", "Nairobi West", "Kilimani", "Ngara", "Kasarani", "South B", "South C", "Parklands",
+  "Thika Road", "Rongai", "Westlands", "Kenyatta Uni Area", "JKUAT Area", "Moi University Area",
 ];
 
 const SORT_OPTIONS = [
@@ -32,46 +18,46 @@ const SORT_OPTIONS = [
 ];
 
 export default function ExplorePremiumHostels() {
-  const location = useLocation();
+  const locationState = useLocation();
   const [hostels, setHostels] = useState([]);
   const [filters, setFilters] = useState({ location: "", search: "" });
   const [sortBy, setSortBy] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(6);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Grab search from navbar (only once)
   useEffect(() => {
-    setLoading(true);
-    API.get("/premium-hostels/")
-      .then((res) => setHostels(res.data))
-      .catch((err) => console.error("Failed to load premium hostels", err))
-      .finally(() => setLoading(false));
-  }, []);
+    const searchParam = locationState?.state?.search || "";
+    if (searchParam) {
+      setFilters((prev) => ({ ...prev, search: searchParam }));
+    }
+  }, [locationState]);
 
-  const applyFiltersAndSort = () => {
-    return hostels
-      .filter((hostel) => {
-        const search = filters.search.toLowerCase();
-        const matchesSearch =
-          hostel.name.toLowerCase().includes(search) ||
-          hostel.description?.toLowerCase().includes(search);
-        const matchesLocation =
-          !filters.location || hostel.location?.toLowerCase().includes(filters.location.toLowerCase());
-        return matchesSearch && matchesLocation;
-      })
-      .sort((a, b) => {
-        switch (sortBy) {
-          case "newest": return new Date(b.created_at) - new Date(a.created_at);
-          case "oldest": return new Date(a.created_at) - new Date(b.created_at);
-          case "priceLow": return a.price - b.price;
-          case "priceHigh": return b.price - a.price;
-          case "rating": return (b.rating || 0) - (a.rating || 0);
-          default: return 0;
-        }
-      })
-      .slice(0, visibleCount);
-  };
+  // ✅ Fetch hostels when filters or sorting change
+  useEffect(() => {
+    const fetchHostels = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (filters.search) params.append("search", filters.search);
+        if (filters.location) params.append("location", filters.location);
+        if (sortBy) params.append("sort", sortBy);
 
-  const visibleHostels = applyFiltersAndSort();
+        const res = await API.get(`/premium-hostels/?${params.toString()}`);
+        console.log("Fetched hostels:", res.data);
+        setHostels(res.data);
+        setVisibleCount(6); // Reset visible count on new fetch
+      } catch (err) {
+        console.error("Failed to load premium hostels", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHostels();
+  }, [filters.search, filters.location, sortBy]);
+
+  const visibleHostels = hostels.slice(0, visibleCount);
 
   return (
     <div className="bg-gray-100 min-h-screen pt-12 pb-24">
@@ -97,7 +83,12 @@ export default function ExplorePremiumHostels() {
             {LOCATIONS.map((loc) => (
               <button
                 key={loc}
-                onClick={() => setFilters((f) => ({ ...f, location: loc === "All" ? "" : loc }))}
+                onClick={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    location: loc === "All" ? "" : loc,
+                  }))
+                }
                 className={`px-4 py-2 text-sm rounded-full border transition ${
                   filters.location === loc || (loc === "All" && !filters.location)
                     ? "bg-blue-600 text-white"
@@ -126,14 +117,14 @@ export default function ExplorePremiumHostels() {
               type="text"
               placeholder="Search by name or description..."
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
               className="px-4 py-2 border rounded w-full md:w-72 text-sm"
             />
           </div>
         </section>
       </FadeInSection>
 
-      {/* GRID */}
+      {/* HOSTELS */}
       <FadeInSection delay={0.2}>
         <main className="px-4 max-w-7xl mx-auto">
           {loading ? (
@@ -178,7 +169,6 @@ export default function ExplorePremiumHostels() {
             </div>
           )}
 
-          {/* Show More Button */}
           {!loading && visibleCount < hostels.length && (
             <div className="text-center mt-10">
               <button
